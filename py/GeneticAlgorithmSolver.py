@@ -1,6 +1,5 @@
 from RouteManager import RouteManager
 from Route import Route
-import random
 import numpy as np
 
 
@@ -30,7 +29,7 @@ class GeneticAlgorithmSolver:
                 fitness = []
                 i = 0
                 while i < self.tournament_size:
-                    token = random.randint(0, self.population_size-1)
+                    token = np.random.randint(0, self.population_size-1)
                     if token in tokens:
                         continue
                     tokens.append(token)
@@ -49,20 +48,37 @@ class GeneticAlgorithmSolver:
 
     def crossover(self, route_1, route_2):
         newMem = Route(self.cities)
+        random_1 = np.random.randint(0, route_1.__len__()/2-1)
+        random_2 = np.random.randint(9, route_1.__len__() - 1)
+        if random_1 > random_2:
+            temp = random_2
+            random_2 = random_1
+            random_1 = temp
         i = 0
         while i < len(self.cities):
-            rate = random.random()
-            if i < len(self.cities)/2:
-                city = route_1.get_city(int(i+len(self.cities)/4))
+            rate = np.random.random()
+            if random_1 < i < random_2:
+                repeat = i
+                city = route_1.get_city(i)
                 if not newMem.__contains__(city):
-                    newMem.assign_city(int(i+len(self.cities)/4), city)
+                    newMem.assign_city(int(i), city)
+                else:
+                    found = False
+                    while found is False:
+                        repeat += 1
+                        if repeat >= len(self.cities):
+                            repeat = len(self.cities) - repeat
+                        city = route_1.get_city(repeat)
+                        if not newMem.__contains__(city):
+                            newMem.assign_city(int(i), city)
+                            found = True
             else:
                 if rate < 0.8:
                     repeat = 0
                     city = None
                     k = 0
-                    if i >= 3*len(self.cities)/4:
-                        city = route_2.get_city(int(i-(3*len(self.cities)/4)))
+                    if i >= random_2:
+                        city = route_2.get_city(int(i-random_2))
                     else:
                         city = route_2.get_city(i)
                         k += 1
@@ -74,9 +90,9 @@ class GeneticAlgorithmSolver:
                                 repeat += 1
                                 if repeat >= len(self.cities):
                                     repeat = len(self.cities) - repeat
-                                city = route_2.get_city(int(repeat-(3*len(self.cities)/4)))
+                                city = route_2.get_city(int(repeat-random_2))
                                 if not newMem.__contains__(city):
-                                    newMem.assign_city(int(i-(3*len(self.cities)/4)), city)
+                                    newMem.assign_city(int(i), city)
                                     found = True
                         elif k == 1:
                             while found is False:
@@ -85,33 +101,28 @@ class GeneticAlgorithmSolver:
                                     repeat = len(self.cities) - repeat
                                 city = route_2.get_city(repeat)
                                 if not newMem.__contains__(city):
-                                    newMem.assign_city(int(i+len(self.cities)/4), city)
+                                    newMem.assign_city(int(i+random_1), city)
                                     found = True
                     else:
-                      #  print(city)
-                        if i >= 3*len(self.cities)/4:
-                            newMem.assign_city(int(i-(3*len(self.cities)/4)), city)
+                        if i >= random_2:
+                            newMem.assign_city(int(i-random_2), city)
                         else:
-                            newMem.assign_city(int(i+len(self.cities)/4), city)
-                       # print("2den aldı")
+                            newMem.assign_city(int(i), city)
                 else:
                     if newMem.__len__() < 2:
-                       # print("mutate")
                         self.mutate(newMem)
                     i -= 1
-               # print(newMem)
             i += 1
-       # print(newMem)
         return newMem
 
     def mutate(self, route):
-        changer1 = random.randint(0, route.__len__() - 1)
-        changer2 = random.randint(0, route.__len__() - 1)
+        changer1 = np.random.randint(0, route.__len__() - 1)
+        changer2 = np.random.randint(0, route.__len__() - 1)
         temp1 = route.get_city(changer1)
         temp2 = route.get_city(changer2)
         while temp1 is None or temp2 is None:
-            changer1 = random.randint(0, route.__len__() - 1)
-            changer2 = random.randint(0, route.__len__() - 1)
+            changer1 = np.random.randint(0, route.__len__() - 1)
+            changer2 = np.random.randint(0, route.__len__() - 1)
             temp1 = route.get_city(changer1)
             temp2 = route.get_city(changer2)
         route.assign_city(changer1, temp2)
@@ -123,7 +134,7 @@ class GeneticAlgorithmSolver:
         i = 0
         while i < len(routes):
             route = routes[i]
-            if best is None or routes[i].calc_fitness() > best.calc_fitness():
-                best = routes[i]
+            if best is None or route.calc_fitness() > best.calc_fitness():
+                best = route
             i += 1
         return best

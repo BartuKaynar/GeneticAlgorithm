@@ -13,6 +13,5 @@ if __name__ == '__main__':
 
     gas = GeneticAlgorithmSolver(cm, 50)
     rm = gas.solve(rm)
-
     print(rm.find_best_route().calc_route_distance())
     print(rm.find_best_route())
